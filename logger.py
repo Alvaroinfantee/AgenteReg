@@ -16,34 +16,38 @@ logging.basicConfig(
 
 logger = logging.getLogger("AgenteRegulacion")
 
+def _get_valid_webhook_url() -> str | None:
+    """Returns the webhook URL only if it has a valid scheme, otherwise None."""
+    url = os.environ.get("LOGGING_WEBHOOK_URL", "").strip()
+    if url and (url.startswith("http://") or url.startswith("https://")):
+        return url
+    return None
+
 def log_event(event_type: str, data: dict):
     """
     Logs an event to stdout and optionally to a webhook.
-    
+
     Args:
         event_type (str): The type of event (e.g., "query", "error", "feedback").
         data (dict): The data associated with the event.
     """
     timestamp = datetime.now().isoformat()
-    
-    # Structure the log entry
+
     log_entry = {
         "timestamp": timestamp,
         "event_type": event_type,
         "data": data
     }
-    
+
     # Log to stdout (captured by DigitalOcean)
     logger.info(json.dumps(log_entry))
-    
-    # Send to webhook if configured
-    webhook_url = os.environ.get("LOGGING_WEBHOOK_URL")
+
+    # Send to webhook only if a valid URL is configured
+    webhook_url = _get_valid_webhook_url()
     if webhook_url:
         try:
-            # Format depends on the destination (e.g., Slack, Discord, or generic JSON endpoint)
-            # Sending raw JSON for maximum compatibility with generic ingestors
             response = requests.post(
-                webhook_url, 
+                webhook_url,
                 json=log_entry,
                 headers={"Content-Type": "application/json"},
                 timeout=5
