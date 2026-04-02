@@ -8,17 +8,11 @@ st.set_page_config(page_title="Agente Regulación Bancaria RD", page_icon="🤖"
 
 st.title("Agente Regulación Bancaria RD 20/12/25")
 
-# Sidebar for API Key
-with st.sidebar:
-    st.header("Configuration")
-    api_key = st.text_input("OpenAI API Key", type="password")
-    if not api_key:
-        # Check environment variable
-        api_key = os.environ.get("OPENAI_API_KEY")
-    
-    if not api_key:
-        st.warning("Please enter your OpenAI API Key to proceed.")
-        st.stop()
+# Read API key from environment only (set in DigitalOcean app settings)
+api_key = os.environ.get("OPENAI_API_KEY")
+if not api_key:
+    st.error("⚠️ OPENAI_API_KEY environment variable is not set. Configure it in the app settings.")
+    st.stop()
 
 # Initialize Agent System
 if "agent_system" not in st.session_state:
